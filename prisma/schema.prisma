@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum HouseholdRole {
+  OWNER
+  MEMBER
+}
+
+enum ExpenseCategory {
+  MORTGAGE
+  UTILITIES
+  INTERNET
+  INSURANCE
+  PROPERTY_TAX
+  REPAIRS
+  SUBSCRIPTIONS
+  CUSTOM
+}
+
+enum UpgradeStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum MaintenanceFrequency {
+  ONE_TIME
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUALLY
+  ANNUALLY
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum MaintenanceStatus {
+  UPCOMING
+  DUE_SOON
+  OVERDUE
+  COMPLETED
+}
+
+model User {
+  id           String            @id @default(cuid())
+  email        String            @unique
+  username     String            @unique
+  name         String
+  passwordHash String
+  avatarColor  String            @default("#2f80ed")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  sessions     Session[]
+  memberships  HouseholdMember[]
+  expenses     BudgetExpense[]   @relation("ExpenseCreator")
+  upgrades     UpgradeProject[]  @relation("UpgradeCreator")
+  maintenance  MaintenanceTask[] @relation("MaintenanceCreator")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model LoginAttempt {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  failedCount   Int       @default(0)
+  lockedUntil   DateTime?
+  lastAttemptAt DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Household {
+  id          String            @id @default(cuid())
+  name        String
+  address     String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  members     HouseholdMember[]
+  expenses    BudgetExpense[]
+  upgrades    UpgradeProject[]
+  maintenance MaintenanceTask[]
+}
+
+model HouseholdMember {
+  id          String        @id @default(cuid())
+  householdId String
+  userId      String
+  role        HouseholdRole @default(MEMBER)
+  createdAt   DateTime      @default(now())
+  household   Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([householdId, userId])
+  @@index([userId])
+}
+
+model BudgetExpense {
+  id             String          @id @default(cuid())
+  householdId    String
+  createdById    String
+  name           String
+  category       ExpenseCategory
+  customCategory String?
+  amountCents    Int
+  dueDate        DateTime        @db.Date
+  isPaid         Boolean         @default(false)
+  paidDate       DateTime?       @db.Date
+  isRecurring    Boolean         @default(false)
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  household      Household       @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdBy      User            @relation("ExpenseCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([householdId, dueDate])
+  @@index([householdId, isPaid])
+}
+
+model UpgradeProject {
+  id             String        @id @default(cuid())
+  householdId    String
+  createdById    String
+  name           String
+  description    String?
+  room           String
+  status         UpgradeStatus @default(PLANNED)
+  estimatedCents Int?
+  actualCents    Int?
+  startDate      DateTime?     @db.Date
+  completionDate DateTime?     @db.Date
+  notes          String?
+  links          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  household      Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdBy      User          @relation("UpgradeCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([householdId, status])
+  @@index([householdId, room])
+}
+
+model MaintenanceTask {
+  id                String               @id @default(cuid())
+  householdId       String
+  createdById       String
+  name              String
+  description       String?
+  category          String
+  frequency         MaintenanceFrequency
+  lastCompletedDate DateTime?            @db.Date
+  nextDueDate       DateTime?            @db.Date
+  priority          MaintenancePriority  @default(MEDIUM)
+  status            MaintenanceStatus    @default(UPCOMING)
+  notes             String?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  household         Household            @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  createdBy         User                 @relation("MaintenanceCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([householdId, status])
+  @@index([householdId, nextDueDate])
+}
