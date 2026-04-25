@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LayoutDashboard, WalletCards, Hammer, Wrench, Settings, LogOut } from "lucide-react";
 import type { AuthUser } from "@/lib/auth";
 import { logoutAction } from "@/app/(app)/actions";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -49,6 +50,7 @@ export function AppShell({ user, householdName, children }: AppShellProps) {
             <strong>{user.name}</strong>
             <span>{user.username}</span>
           </div>
+          <ThemeToggle />
           <form action={logoutAction}>
             <button className="icon-button" title="Sign out" aria-label="Sign out">
               <LogOut size={18} aria-hidden="true" />
@@ -58,6 +60,10 @@ export function AppShell({ user, householdName, children }: AppShellProps) {
       </aside>
 
       <main className="main-content">{children}</main>
+
+      <div className="mobile-theme-toggle">
+        <ThemeToggle />
+      </div>
 
       <nav className="mobile-tabs" aria-label="Primary navigation">
         {navItems.map((item) => {
