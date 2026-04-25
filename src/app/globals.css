@@ -139,6 +139,20 @@ button {
   color: var(--text);
 }
 
+.nav-link:focus-visible,
+.mobile-tab:focus-visible,
+.icon-button:focus-visible,
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.danger-button:focus-visible,
+.filter-chip:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .user-panel {
   gap: 10px;
   margin-top: auto;
@@ -535,6 +549,79 @@ textarea:focus {
 .filter-chip.active {
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+[data-theme="dark"] .primary-button {
+  background: #8bb5ff;
+  color: #07111f;
+  border-color: #a9c8ff;
+}
+
+[data-theme="dark"] .secondary-button,
+[data-theme="dark"] .filter-chip {
+  background: #25313d;
+  color: #eef4f7;
+  border-color: #3a4653;
+}
+
+[data-theme="dark"] .filter-chip.active {
+  background: #254a80;
+  color: #f4f8ff;
+  border-color: #7aa7ff;
+}
+
+[data-theme="dark"] .danger-button {
+  background: #5a2228;
+  color: #ffd7d7;
+  border-color: #ff8a8a;
+}
+
+[data-theme="dark"] .icon-button {
+  color: #c8d3dc;
+}
+
+[data-theme="dark"] .icon-button:hover,
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .mobile-tab:hover {
+  background: #25313d;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .nav-link,
+[data-theme="dark"] .mobile-tab {
+  color: #c2ced8;
+}
+
+[data-theme="dark"] .status-pill {
+  color: #d7e0e7;
+  background: #27313c;
+}
+
+[data-theme="dark"] .status-pill.tone-good {
+  color: #d9ffe7;
+  background: #17492e;
+}
+
+[data-theme="dark"] .status-pill.tone-warn {
+  color: #fff1c9;
+  background: #5a3c10;
+}
+
+[data-theme="dark"] .status-pill.tone-danger {
+  color: #ffe0e0;
+  background: #5b2428;
+}
+
+[data-theme="dark"] .status-pill.tone-blue {
+  color: #edf5ff;
+  background: #244b82;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  border-color: #8bb5ff;
+  box-shadow: 0 0 0 3px rgba(139, 181, 255, 0.28);
 }
 
 .filter-row {
