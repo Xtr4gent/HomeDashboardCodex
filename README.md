@@ -27,6 +27,7 @@ cp .env.example .env
 ```
 
 3. Set `DATABASE_URL` to a PostgreSQL database.
+   If you use a non-public PostgreSQL schema, set `DATABASE_SCHEMA` to that schema name.
 
 4. Generate Prisma client, run migrations, and seed:
 
@@ -75,6 +76,7 @@ Change these through environment variables before seeding any real deployment.
 SESSION_COOKIE_NAME=home_dashboard_session
 SESSION_DAYS=30
 BCRYPT_ROUNDS=12
+DATABASE_SCHEMA=public
 SEED_USER_1_NAME=Gabe
 SEED_USER_1_USERNAME=Gabe
 SEED_USER_1_EMAIL=gabe@example.com

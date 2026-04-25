@@ -11,9 +11,14 @@ import {
 } from "../src/generated/prisma/enums";
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({
-    connectionString: process.env.DATABASE_URL
-  })
+  adapter: new PrismaPg(
+    {
+      connectionString: process.env.DATABASE_URL
+    },
+    {
+      schema: process.env.DATABASE_SCHEMA || "public"
+    }
+  )
 });
 
 function requiredSeedValue(name: string, fallback: string): string {
