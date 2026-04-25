@@ -10,6 +10,7 @@ Private home dashboard for Gabe and Alessandra to manage home budgeting, upgrade
 - Database-backed sessions stored as hashed tokens
 - Server actions for budget, upgrade, and maintenance CRUD
 - Railway-ready build and start commands
+- Node.js 22 runtime for Railway and Prisma 7 compatibility
 
 ## Local Setup
 

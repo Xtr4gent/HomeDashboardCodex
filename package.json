@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "A private home budgeting, upgrades, and maintenance dashboard for Gabe and Alessandra.",
   "private": true,
+  "engines": {
+    "node": "22.x",
+    "npm": "10.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
