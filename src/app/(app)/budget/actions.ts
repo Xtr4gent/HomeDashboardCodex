@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ExpenseCategory } from "@/generated/prisma/enums";
 import { requireHousehold } from "@/lib/auth";
@@ -35,6 +36,12 @@ function expensePayload(formData: FormData) {
   });
 }
 
+function refreshBudgetPage(): never {
+  revalidatePath("/");
+  revalidatePath("/budget");
+  redirect("/budget");
+}
+
 export async function createExpenseAction(formData: FormData) {
   const { user, household } = await requireHousehold();
   const payload = expensePayload(formData);
@@ -53,8 +60,7 @@ export async function createExpenseAction(formData: FormData) {
     }
   });
 
-  revalidatePath("/");
-  revalidatePath("/budget");
+  refreshBudgetPage();
 }
 
 export async function updateExpenseAction(formData: FormData) {
@@ -65,7 +71,7 @@ export async function updateExpenseAction(formData: FormData) {
     throw new Error("Expense id is required.");
   }
 
-  await prisma.budgetExpense.updateMany({
+  const result = await prisma.budgetExpense.updateMany({
     where: { id: payload.id, householdId: household.id },
     data: {
       name: payload.name,
@@ -78,18 +84,24 @@ export async function updateExpenseAction(formData: FormData) {
     }
   });
 
-  revalidatePath("/");
-  revalidatePath("/budget");
+  if (result.count === 0) {
+    throw new Error("Expense not found.");
+  }
+
+  refreshBudgetPage();
 }
 
 export async function deleteExpenseAction(formData: FormData) {
   const { household } = await requireHousehold();
   const id = z.string().min(1).parse(formData.get("id"));
 
-  await prisma.budgetExpense.deleteMany({ where: { id, householdId: household.id } });
+  const result = await prisma.budgetExpense.deleteMany({ where: { id, householdId: household.id } });
 
-  revalidatePath("/");
-  revalidatePath("/budget");
+  if (result.count === 0) {
+    throw new Error("Expense not found.");
+  }
+
+  refreshBudgetPage();
 }
 
 export async function toggleExpensePaidAction(formData: FormData) {
@@ -139,6 +151,5 @@ export async function toggleExpensePaidAction(formData: FormData) {
     }
   }
 
-  revalidatePath("/");
-  revalidatePath("/budget");
+  refreshBudgetPage();
 }

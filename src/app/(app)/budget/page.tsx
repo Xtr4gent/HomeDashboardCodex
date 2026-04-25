@@ -36,10 +36,11 @@ export default async function BudgetPage() {
   const monthlyTotal = currentMonth.reduce((sum, expense) => sum + expense.amountCents, 0);
   const paidTotal = currentMonth.filter((expense) => expense.isPaid).reduce((sum, expense) => sum + expense.amountCents, 0);
   const unpaidTotal = monthlyTotal - paidTotal;
-  const history = expenses
-    .filter((expense) => expense.dueDate >= sixMonthsAgo)
+  const paidExpensesForHistory = expenses.filter((expense) => expense.isPaid);
+  const history = paidExpensesForHistory
+    .filter((expense) => (expense.paidDate ?? expense.dueDate) >= sixMonthsAgo)
     .reduce<Record<string, number>>((months, expense) => {
-      const key = expense.dueDate.toISOString().slice(0, 7);
+      const key = (expense.paidDate ?? expense.dueDate).toISOString().slice(0, 7);
       months[key] = (months[key] || 0) + expense.amountCents;
       return months;
     }, {});
@@ -83,7 +84,7 @@ export default async function BudgetPage() {
               ))}
             </div>
           ) : (
-            <EmptyState title="No spending history" description="Historical totals appear once expenses are added." />
+            <EmptyState title="No spending history" description="Historical totals appear once expenses are marked paid." />
           )}
         </div>
       </section>
