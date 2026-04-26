@@ -19,15 +19,15 @@
 }
 
 [data-theme="dark"] {
-  --bg: #0c1116;
-  --surface: #151b22;
-  --surface-muted: #202832;
-  --surface-raised: #10161d;
-  --text: #eef4f7;
-  --muted: #a2afb8;
-  --line: #2b3540;
-  --accent: #7aa7ff;
-  --accent-soft: #172844;
+  --bg: #000000;
+  --surface: #090909;
+  --surface-muted: #171717;
+  --surface-raised: #050505;
+  --text: #f4f4f5;
+  --muted: #a7a7ad;
+  --line: #262626;
+  --accent: #e5e7eb;
+  --accent-soft: #222222;
   --good: #61d394;
   --good-soft: #123323;
   --warn: #f2be5c;
@@ -339,6 +339,10 @@ h2 {
   font-weight: 700;
 }
 
+.muted-action {
+  color: var(--muted);
+}
+
 .compact-list,
 .record-list,
 .member-list,
@@ -552,9 +556,9 @@ textarea:focus {
 }
 
 [data-theme="dark"] .primary-button {
-  background: #8bb5ff;
-  color: #07111f;
-  border-color: #a9c8ff;
+  background: #f4f4f5;
+  color: #050505;
+  border-color: #ffffff;
 }
 
 [data-theme="dark"] .secondary-button,
@@ -565,9 +569,9 @@ textarea:focus {
 }
 
 [data-theme="dark"] .filter-chip.active {
-  background: #254a80;
+  background: #303030;
   color: #f4f8ff;
-  border-color: #7aa7ff;
+  border-color: #d4d4d8;
 }
 
 [data-theme="dark"] .danger-button {
@@ -613,15 +617,15 @@ textarea:focus {
 }
 
 [data-theme="dark"] .status-pill.tone-blue {
-  color: #edf5ff;
-  background: #244b82;
+  color: #f4f4f5;
+  background: #303030;
 }
 
 [data-theme="dark"] input:focus,
 [data-theme="dark"] select:focus,
 [data-theme="dark"] textarea:focus {
-  border-color: #8bb5ff;
-  box-shadow: 0 0 0 3px rgba(139, 181, 255, 0.28);
+  border-color: #f4f4f5;
+  box-shadow: 0 0 0 3px rgba(244, 244, 245, 0.24);
 }
 
 .filter-row {

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { LayoutDashboard, WalletCards, Hammer, Wrench, Settings, LogOut } from "lucide-react";
+import { HouseholdRole } from "@/generated/prisma/enums";
 import type { AuthUser } from "@/lib/auth";
 import { logoutAction } from "@/app/(app)/actions";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
-const navItems = [
+const adminNavItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/budget", label: "Budget", icon: WalletCards },
   { href: "/upgrades", label: "Upgrades", icon: Hammer },
@@ -12,13 +13,21 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings }
 ];
 
+const memberNavItems = [
+  { href: "/", label: "Overview", icon: LayoutDashboard },
+  { href: "/settings", label: "Settings", icon: Settings }
+];
+
 type AppShellProps = {
   user: AuthUser;
   householdName: string;
+  role: HouseholdRole;
   children: React.ReactNode;
 };
 
-export function AppShell({ user, householdName, children }: AppShellProps) {
+export function AppShell({ user, householdName, role, children }: AppShellProps) {
+  const navItems = role === HouseholdRole.OWNER ? adminNavItems : memberNavItems;
+
   return (
     <div className="app-shell">
       <aside className="sidebar" aria-label="Primary navigation">
@@ -48,7 +57,7 @@ export function AppShell({ user, householdName, children }: AppShellProps) {
           </div>
           <div>
             <strong>{user.name}</strong>
-            <span>{user.username}</span>
+            <span>{role === HouseholdRole.OWNER ? "Admin" : "Overview"} - {user.username}</span>
           </div>
           <ThemeToggle />
           <form action={logoutAction}>

@@ -6,7 +6,7 @@ import {
   MaintenanceFrequency,
   MaintenancePriority
 } from "@/generated/prisma/enums";
-import { requireHousehold } from "@/lib/auth";
+import { requireAdminHousehold } from "@/lib/auth";
 import {
   nextDueFromFrequency,
   parseDateInput,
@@ -42,7 +42,7 @@ function maintenancePayload(formData: FormData) {
 }
 
 export async function createMaintenanceAction(formData: FormData) {
-  const { user, household } = await requireHousehold();
+  const { user, household } = await requireAdminHousehold();
   const payload = maintenancePayload(formData);
   const status = statusForMaintenanceTask(payload);
 
@@ -61,7 +61,7 @@ export async function createMaintenanceAction(formData: FormData) {
 }
 
 export async function updateMaintenanceAction(formData: FormData) {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const payload = maintenancePayload(formData);
 
   if (!payload.id) {
@@ -90,7 +90,7 @@ export async function updateMaintenanceAction(formData: FormData) {
 }
 
 export async function deleteMaintenanceAction(formData: FormData) {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const id = z.string().min(1).parse(formData.get("id"));
 
   await prisma.maintenanceTask.deleteMany({ where: { id, householdId: household.id } });
@@ -100,7 +100,7 @@ export async function deleteMaintenanceAction(formData: FormData) {
 }
 
 export async function completeMaintenanceAction(formData: FormData) {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const id = z.string().min(1).parse(formData.get("id"));
   const task = await prisma.maintenanceTask.findFirst({
     where: { id, householdId: household.id }

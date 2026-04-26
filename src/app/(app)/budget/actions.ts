@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ExpenseCategory } from "@/generated/prisma/enums";
-import { requireHousehold } from "@/lib/auth";
+import { requireAdminHousehold } from "@/lib/auth";
 import { addMonths, parseDateInput, todayDate } from "@/lib/dates";
 import { centsFromFormValue } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
@@ -43,7 +43,7 @@ function refreshBudgetPage(): never {
 }
 
 export async function createExpenseAction(formData: FormData) {
-  const { user, household } = await requireHousehold();
+  const { user, household } = await requireAdminHousehold();
   const payload = expensePayload(formData);
 
   await prisma.budgetExpense.create({
@@ -64,7 +64,7 @@ export async function createExpenseAction(formData: FormData) {
 }
 
 export async function updateExpenseAction(formData: FormData) {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const payload = expensePayload(formData);
 
   if (!payload.id) {
@@ -92,7 +92,7 @@ export async function updateExpenseAction(formData: FormData) {
 }
 
 export async function deleteExpenseAction(formData: FormData) {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const id = z.string().min(1).parse(formData.get("id"));
 
   const result = await prisma.budgetExpense.deleteMany({ where: { id, householdId: household.id } });
@@ -105,7 +105,7 @@ export async function deleteExpenseAction(formData: FormData) {
 }
 
 export async function toggleExpensePaidAction(formData: FormData) {
-  const { user, household } = await requireHousehold();
+  const { user, household } = await requireAdminHousehold();
   const id = z.string().min(1).parse(formData.get("id"));
   const expense = await prisma.budgetExpense.findFirst({
     where: { id, householdId: household.id }

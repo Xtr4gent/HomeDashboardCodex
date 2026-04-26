@@ -7,7 +7,7 @@ import { createExpenseAction, deleteExpenseAction, toggleExpensePaidAction, upda
 import { formatDate, toDateInputValue, todayDate } from "@/lib/dates";
 import { dollarsFromCents, formatMoney } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
-import { requireHousehold } from "@/lib/auth";
+import { requireAdminHousehold } from "@/lib/auth";
 
 const categoryLabels: Record<ExpenseCategory, string> = {
   MORTGAGE: "Mortgage",
@@ -21,7 +21,7 @@ const categoryLabels: Record<ExpenseCategory, string> = {
 };
 
 export default async function BudgetPage() {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const today = todayDate();
   const monthStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1));
   const nextMonthStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 1));

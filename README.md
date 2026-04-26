@@ -51,6 +51,7 @@ Local seed defaults:
 - Alessandra: `alessandra@example.com` / `change-me-alessandra`
 
 You can also sign in with the seeded usernames: `Gabe` and `Alessandra`.
+The seed script also supports `HOUSEHOLD_ACCOUNT_1_USERNAME`, `HOUSEHOLD_ACCOUNT_1_PASSWORD`, `HOUSEHOLD_ACCOUNT_2_USERNAME`, and `HOUSEHOLD_ACCOUNT_2_PASSWORD` aliases.
 
 Change these through environment variables before seeding any real deployment.
 

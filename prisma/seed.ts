@@ -21,18 +21,22 @@ const prisma = new PrismaClient({
   )
 });
 
-function requiredSeedValue(name: string, fallback: string): string {
-  const value = process.env[name];
+function seedValue(names: string[], fallback: string): string {
+  const value = names.map((name) => process.env[name]).find(Boolean);
 
   if (value) {
     return value;
   }
 
   if (process.env.NODE_ENV === "production") {
-    throw new Error(`${name} is required when seeding production.`);
+    throw new Error(`${names[0]} is required when seeding production.`);
   }
 
   return fallback;
+}
+
+function requiredSeedValue(name: string, fallback: string): string {
+  return seedValue([name], fallback);
 }
 
 function utcDate(value: string): Date {
@@ -41,20 +45,22 @@ function utcDate(value: string): Date {
 
 async function main() {
   const rounds = Number(process.env.BCRYPT_ROUNDS || "12");
-  const gabePassword = requiredSeedValue("SEED_USER_1_PASSWORD", "change-me-gabe");
-  const alessandraPassword = requiredSeedValue("SEED_USER_2_PASSWORD", "change-me-alessandra");
+  const gabePassword = seedValue(["HOUSEHOLD_ACCOUNT_1_PASSWORD", "SEED_USER_1_PASSWORD"], "change-me-gabe");
+  const alessandraPassword = seedValue(["HOUSEHOLD_ACCOUNT_2_PASSWORD", "SEED_USER_2_PASSWORD"], "change-me-alessandra");
+  const gabeUsername = seedValue(["HOUSEHOLD_ACCOUNT_1_USERNAME", "SEED_USER_1_USERNAME"], "Gabe").toLowerCase();
+  const alessandraUsername = seedValue(["HOUSEHOLD_ACCOUNT_2_USERNAME", "SEED_USER_2_USERNAME"], "Alessandra").toLowerCase();
 
   const gabe = await prisma.user.upsert({
     where: { email: requiredSeedValue("SEED_USER_1_EMAIL", "gabe@example.com").toLowerCase() },
     update: {
-      username: requiredSeedValue("SEED_USER_1_USERNAME", "Gabe").toLowerCase(),
+      username: gabeUsername,
       name: process.env.SEED_USER_1_NAME || "Gabe",
       passwordHash: await bcrypt.hash(gabePassword, rounds),
       avatarColor: "#2563eb"
     },
     create: {
       email: requiredSeedValue("SEED_USER_1_EMAIL", "gabe@example.com").toLowerCase(),
-      username: requiredSeedValue("SEED_USER_1_USERNAME", "Gabe").toLowerCase(),
+      username: gabeUsername,
       name: process.env.SEED_USER_1_NAME || "Gabe",
       passwordHash: await bcrypt.hash(gabePassword, rounds),
       avatarColor: "#2563eb"
@@ -64,14 +70,14 @@ async function main() {
   const alessandra = await prisma.user.upsert({
     where: { email: requiredSeedValue("SEED_USER_2_EMAIL", "alessandra@example.com").toLowerCase() },
     update: {
-      username: requiredSeedValue("SEED_USER_2_USERNAME", "Alessandra").toLowerCase(),
+      username: alessandraUsername,
       name: process.env.SEED_USER_2_NAME || "Alessandra",
       passwordHash: await bcrypt.hash(alessandraPassword, rounds),
       avatarColor: "#0f8b6f"
     },
     create: {
       email: requiredSeedValue("SEED_USER_2_EMAIL", "alessandra@example.com").toLowerCase(),
-      username: requiredSeedValue("SEED_USER_2_USERNAME", "Alessandra").toLowerCase(),
+      username: alessandraUsername,
       name: process.env.SEED_USER_2_NAME || "Alessandra",
       passwordHash: await bcrypt.hash(alessandraPassword, rounds),
       avatarColor: "#0f8b6f"
@@ -95,8 +101,8 @@ async function main() {
 
   await prisma.householdMember.upsert({
     where: { householdId_userId: { householdId: household.id, userId: alessandra.id } },
-    update: { role: HouseholdRole.OWNER },
-    create: { householdId: household.id, userId: alessandra.id, role: HouseholdRole.OWNER }
+    update: { role: HouseholdRole.MEMBER },
+    create: { householdId: household.id, userId: alessandra.id, role: HouseholdRole.MEMBER }
   });
 
   const existingExpenses = await prisma.budgetExpense.count({ where: { householdId: household.id } });

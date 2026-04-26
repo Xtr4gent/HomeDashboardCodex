@@ -12,7 +12,7 @@ import {
 import { formatDate, toDateInputValue } from "@/lib/dates";
 import { syncMaintenanceStatuses } from "@/lib/maintenance";
 import { prisma } from "@/lib/prisma";
-import { requireHousehold } from "@/lib/auth";
+import { requireAdminHousehold } from "@/lib/auth";
 
 const frequencyLabels: Record<MaintenanceFrequency, string> = {
   ONE_TIME: "One-time",
@@ -36,7 +36,7 @@ const statusTone: Record<MaintenanceStatus, "neutral" | "good" | "warn" | "dange
 };
 
 export default async function MaintenancePage() {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   await syncMaintenanceStatuses(household.id);
   const tasks = await prisma.maintenanceTask.findMany({
     where: { householdId: household.id },

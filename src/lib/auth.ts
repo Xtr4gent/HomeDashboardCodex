@@ -2,6 +2,7 @@ import { randomBytes, createHash } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
+import { HouseholdRole } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 
 const DEFAULT_COOKIE_NAME = "home_dashboard_session";
@@ -15,6 +16,8 @@ export type AuthUser = {
   name: string;
   avatarColor: string;
 };
+
+export type HouseholdAuth = Awaited<ReturnType<typeof requireHousehold>>;
 
 export function sessionCookieName(): string {
   return process.env.SESSION_COOKIE_NAME || DEFAULT_COOKIE_NAME;
@@ -115,6 +118,16 @@ export async function requireHousehold() {
     household: membership.household,
     membership
   };
+}
+
+export async function requireAdminHousehold() {
+  const auth = await requireHousehold();
+
+  if (auth.membership.role !== HouseholdRole.OWNER) {
+    redirect("/");
+  }
+
+  return auth;
 }
 
 export async function logoutCurrentSession(): Promise<void> {

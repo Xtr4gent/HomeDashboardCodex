@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CircleDollarSign, Hammer, Wrench } from "lucide-react";
+import { HouseholdRole } from "@/generated/prisma/enums";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
 import { StatusPill } from "@/components/StatusPill";
@@ -9,15 +10,16 @@ import { formatMoney } from "@/lib/money";
 import { requireHousehold } from "@/lib/auth";
 
 export default async function DashboardPage() {
-  const { household } = await requireHousehold();
+  const { household, membership } = await requireHousehold();
   const data = await getDashboardData(household.id);
+  const isAdmin = membership.role === HouseholdRole.OWNER;
 
   return (
     <div className="page">
       <header className="page-header">
         <div>
-          <p className="eyebrow">Today at home</p>
-          <h1>Dashboard</h1>
+          <p className="eyebrow">{isAdmin ? "Today at home" : "Home overview"}</p>
+          <h1>{isAdmin ? "Dashboard" : "Overview"}</h1>
         </div>
       </header>
 
@@ -35,7 +37,7 @@ export default async function DashboardPage() {
               <CircleDollarSign size={18} />
               <h2>Budget snapshot</h2>
             </div>
-            <Link href="/budget" className="text-link">Review <ArrowRight size={15} /></Link>
+            {isAdmin ? <Link href="/budget" className="text-link">Review <ArrowRight size={15} /></Link> : <span className="text-link muted-action">View only</span>}
           </div>
           {data.monthExpenses.length ? (
             <div className="compact-list">
@@ -63,7 +65,7 @@ export default async function DashboardPage() {
               <Wrench size={18} />
               <h2>Upcoming maintenance</h2>
             </div>
-            <Link href="/maintenance" className="text-link">Open <ArrowRight size={15} /></Link>
+            {isAdmin ? <Link href="/maintenance" className="text-link">Open <ArrowRight size={15} /></Link> : <span className="text-link muted-action">View only</span>}
           </div>
           {[...data.overdueMaintenance, ...data.upcomingMaintenance].length ? (
             <div className="compact-list">
@@ -90,7 +92,7 @@ export default async function DashboardPage() {
               <Hammer size={18} />
               <h2>Active upgrades</h2>
             </div>
-            <Link href="/upgrades" className="text-link">Manage <ArrowRight size={15} /></Link>
+            {isAdmin ? <Link href="/upgrades" className="text-link">Manage <ArrowRight size={15} /></Link> : <span className="text-link muted-action">View only</span>}
           </div>
           {data.activeUpgrades.length ? (
             <div className="project-strip">

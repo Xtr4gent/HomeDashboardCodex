@@ -8,7 +8,7 @@ import { createUpgradeAction, deleteUpgradeAction, updateUpgradeAction } from "@
 import { formatDate, toDateInputValue } from "@/lib/dates";
 import { dollarsFromCents, formatMoney } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
-import { requireHousehold } from "@/lib/auth";
+import { requireAdminHousehold } from "@/lib/auth";
 
 const statusLabels: Record<UpgradeStatus, string> = {
   PLANNED: "Planned",
@@ -24,7 +24,7 @@ type UpgradePageProps = {
 };
 
 export default async function UpgradesPage({ searchParams }: UpgradePageProps) {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const params = await searchParams;
   const status = Object.values(UpgradeStatus).includes(params.status as UpgradeStatus)
     ? (params.status as UpgradeStatus)

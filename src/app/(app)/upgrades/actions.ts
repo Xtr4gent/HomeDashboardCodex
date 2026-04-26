@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { UpgradeStatus } from "@/generated/prisma/enums";
-import { requireHousehold } from "@/lib/auth";
+import { requireAdminHousehold } from "@/lib/auth";
 import { parseDateInput } from "@/lib/dates";
 import { centsFromFormValue } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
@@ -42,7 +42,7 @@ function upgradePayload(formData: FormData) {
 }
 
 export async function createUpgradeAction(formData: FormData) {
-  const { user, household } = await requireHousehold();
+  const { user, household } = await requireAdminHousehold();
   const payload = upgradePayload(formData);
 
   await prisma.upgradeProject.create({
@@ -59,7 +59,7 @@ export async function createUpgradeAction(formData: FormData) {
 }
 
 export async function updateUpgradeAction(formData: FormData) {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const payload = upgradePayload(formData);
 
   if (!payload.id) {
@@ -87,7 +87,7 @@ export async function updateUpgradeAction(formData: FormData) {
 }
 
 export async function deleteUpgradeAction(formData: FormData) {
-  const { household } = await requireHousehold();
+  const { household } = await requireAdminHousehold();
   const id = z.string().min(1).parse(formData.get("id"));
 
   await prisma.upgradeProject.deleteMany({ where: { id, householdId: household.id } });
