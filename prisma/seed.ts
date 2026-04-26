@@ -35,10 +35,6 @@ function seedValue(names: string[], fallback: string): string {
   return fallback;
 }
 
-function requiredSeedValue(name: string, fallback: string): string {
-  return seedValue([name], fallback);
-}
-
 function utcDate(value: string): Date {
   return new Date(`${value}T00:00:00.000Z`);
 }
@@ -49,9 +45,11 @@ async function main() {
   const alessandraPassword = seedValue(["HOUSEHOLD_ACCOUNT_2_PASSWORD", "SEED_USER_2_PASSWORD"], "change-me-alessandra");
   const gabeUsername = seedValue(["HOUSEHOLD_ACCOUNT_1_USERNAME", "SEED_USER_1_USERNAME"], "Gabe").toLowerCase();
   const alessandraUsername = seedValue(["HOUSEHOLD_ACCOUNT_2_USERNAME", "SEED_USER_2_USERNAME"], "Alessandra").toLowerCase();
+  const gabeEmail = seedValue(["HOUSEHOLD_ACCOUNT_1_EMAIL", "SEED_USER_1_EMAIL"], "gabe@example.com").toLowerCase();
+  const alessandraEmail = seedValue(["HOUSEHOLD_ACCOUNT_2_EMAIL", "SEED_USER_2_EMAIL"], "alessandra@example.com").toLowerCase();
 
   const gabe = await prisma.user.upsert({
-    where: { email: requiredSeedValue("SEED_USER_1_EMAIL", "gabe@example.com").toLowerCase() },
+    where: { email: gabeEmail },
     update: {
       username: gabeUsername,
       name: process.env.SEED_USER_1_NAME || "Gabe",
@@ -59,7 +57,7 @@ async function main() {
       avatarColor: "#2563eb"
     },
     create: {
-      email: requiredSeedValue("SEED_USER_1_EMAIL", "gabe@example.com").toLowerCase(),
+      email: gabeEmail,
       username: gabeUsername,
       name: process.env.SEED_USER_1_NAME || "Gabe",
       passwordHash: await bcrypt.hash(gabePassword, rounds),
@@ -68,7 +66,7 @@ async function main() {
   });
 
   const alessandra = await prisma.user.upsert({
-    where: { email: requiredSeedValue("SEED_USER_2_EMAIL", "alessandra@example.com").toLowerCase() },
+    where: { email: alessandraEmail },
     update: {
       username: alessandraUsername,
       name: process.env.SEED_USER_2_NAME || "Alessandra",
@@ -76,7 +74,7 @@ async function main() {
       avatarColor: "#0f8b6f"
     },
     create: {
-      email: requiredSeedValue("SEED_USER_2_EMAIL", "alessandra@example.com").toLowerCase(),
+      email: alessandraEmail,
       username: alessandraUsername,
       name: process.env.SEED_USER_2_NAME || "Alessandra",
       passwordHash: await bcrypt.hash(alessandraPassword, rounds),

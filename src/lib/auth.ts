@@ -141,6 +141,21 @@ export async function logoutCurrentSession(): Promise<void> {
   cookieStore.delete(sessionCookieName());
 }
 
+async function findUserByIdentifier(identifier: string) {
+  const directUser = await prisma.user.findFirst({
+    where: {
+      OR: [{ email: identifier }, { username: identifier }]
+    }
+  });
+
+  if (directUser) {
+    return directUser;
+  }
+
+  const users = await prisma.user.findMany();
+  return users.find((user) => normalizeIdentifier(user.name) === identifier) ?? null;
+}
+
 export async function authenticateWithPassword(identifierInput: string, password: string) {
   const identifier = normalizeIdentifier(identifierInput);
   const throttleKey = identifier;
@@ -150,11 +165,7 @@ export async function authenticateWithPassword(identifierInput: string, password
     return { ok: false as const, reason: "Too many attempts. Try again in a few minutes." };
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [{ email: identifier }, { username: identifier }]
-    }
-  });
+  const user = await findUserByIdentifier(identifier);
   const valid = user ? await bcrypt.compare(password, user.passwordHash) : false;
 
   if (!valid || !user) {
