@@ -38,16 +38,8 @@ const statusTone: Record<MaintenanceStatus, "neutral" | "good" | "warn" | "dange
 
 const pageSize = 5;
 
-type MaintenancePageProps = {
-  searchParams: Promise<{
-    attentionPage?: string;
-    taskPage?: string;
-  }>;
-};
-
-export default async function MaintenancePage({ searchParams }: MaintenancePageProps) {
+export default async function MaintenancePage() {
   const { household } = await requireAdminHousehold();
-  const params = await searchParams;
   await syncMaintenanceStatuses(household.id);
   const tasks = await prisma.maintenanceTask.findMany({
     where: { householdId: household.id },
@@ -59,10 +51,6 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
   const completed = tasks.filter((task) => task.status === MaintenanceStatus.COMPLETED);
   const active = tasks.filter((task) => task.status !== MaintenanceStatus.COMPLETED);
   const attention = [...overdue, ...dueSoon];
-  const attentionPage = boundedPage(params.attentionPage, attention.length);
-  const taskPage = boundedPage(params.taskPage, tasks.length);
-  const pagedAttention = paginate(attention, attentionPage);
-  const pagedTasks = paginate(tasks, taskPage);
 
   return (
     <div className="page">
@@ -94,24 +82,17 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
           </div>
           {attention.length ? (
             <div className="compact-list">
-              {pagedAttention.map((task) => (
-                <div className="compact-row" key={task.id}>
-                  <div>
-                    <strong>{task.name}</strong>
-                    <span>{task.category} - Due {formatDate(task.nextDueDate)}</span>
+              <PaginationControls itemLabel="tasks" pageSize={pageSize}>
+                {attention.map((task) => (
+                  <div className="compact-row" key={task.id}>
+                    <div>
+                      <strong>{task.name}</strong>
+                      <span>{task.category} - Due {formatDate(task.nextDueDate)}</span>
+                    </div>
+                    <StatusPill tone={statusTone[task.status]}>{task.status.replace("_", " ").toLowerCase()}</StatusPill>
                   </div>
-                  <StatusPill tone={statusTone[task.status]}>{task.status.replace("_", " ").toLowerCase()}</StatusPill>
-                </div>
-              ))}
-              <PaginationControls
-                basePath="/maintenance"
-                currentPage={attentionPage}
-                pageParam="attentionPage"
-                pageSize={pageSize}
-                query={{ taskPage: params.taskPage }}
-                totalItems={attention.length}
-                totalPages={pageCount(attention.length)}
-              />
+                ))}
+              </PaginationControls>
             </div>
           ) : (
             <EmptyState title="Nothing urgent" description="Due-soon and overdue maintenance will collect here." />
@@ -125,48 +106,41 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
         </div>
         {tasks.length ? (
           <div className="record-list">
-            {pagedTasks.map((task) => (
-              <article className="record-card" key={task.id}>
-                <div className="record-main">
-                  <div>
-                    <strong>{task.name}</strong>
-                    <span>{task.category} - {frequencyLabels[task.frequency]} - Next due {formatDate(task.nextDueDate)}</span>
+            <PaginationControls itemLabel="tasks" pageSize={pageSize}>
+              {tasks.map((task) => (
+                <article className="record-card" key={task.id}>
+                  <div className="record-main">
+                    <div>
+                      <strong>{task.name}</strong>
+                      <span>{task.category} - {frequencyLabels[task.frequency]} - Next due {formatDate(task.nextDueDate)}</span>
+                    </div>
+                    <div className="record-meta">
+                      <StatusPill tone={task.priority === MaintenancePriority.HIGH ? "danger" : task.priority === MaintenancePriority.MEDIUM ? "warn" : "neutral"}>
+                        {priorityLabels[task.priority]}
+                      </StatusPill>
+                      <StatusPill tone={statusTone[task.status]}>{task.status.replace("_", " ").toLowerCase()}</StatusPill>
+                    </div>
                   </div>
-                  <div className="record-meta">
-                    <StatusPill tone={task.priority === MaintenancePriority.HIGH ? "danger" : task.priority === MaintenancePriority.MEDIUM ? "warn" : "neutral"}>
-                      {priorityLabels[task.priority]}
-                    </StatusPill>
-                    <StatusPill tone={statusTone[task.status]}>{task.status.replace("_", " ").toLowerCase()}</StatusPill>
+                  <p className="muted-line">
+                    Last completed {formatDate(task.lastCompletedDate)} - {task.description || "No description yet"}
+                  </p>
+                  <div className="record-actions">
+                    <form action={completeMaintenanceAction}>
+                      <input type="hidden" name="id" value={task.id} />
+                      <button className="secondary-button">Mark complete</button>
+                    </form>
+                    <details>
+                      <summary className="secondary-button">Edit</summary>
+                      <MaintenanceForm action={updateMaintenanceAction} task={task} />
+                    </details>
+                    <form action={deleteMaintenanceAction}>
+                      <input type="hidden" name="id" value={task.id} />
+                      <ConfirmButton className="danger-button" message={`Delete ${task.name}?`}>Delete</ConfirmButton>
+                    </form>
                   </div>
-                </div>
-                <p className="muted-line">
-                  Last completed {formatDate(task.lastCompletedDate)} - {task.description || "No description yet"}
-                </p>
-                <div className="record-actions">
-                  <form action={completeMaintenanceAction}>
-                    <input type="hidden" name="id" value={task.id} />
-                    <button className="secondary-button">Mark complete</button>
-                  </form>
-                  <details>
-                    <summary className="secondary-button">Edit</summary>
-                    <MaintenanceForm action={updateMaintenanceAction} task={task} />
-                  </details>
-                  <form action={deleteMaintenanceAction}>
-                    <input type="hidden" name="id" value={task.id} />
-                    <ConfirmButton className="danger-button" message={`Delete ${task.name}?`}>Delete</ConfirmButton>
-                  </form>
-                </div>
-              </article>
-            ))}
-            <PaginationControls
-              basePath="/maintenance"
-              currentPage={taskPage}
-              pageParam="taskPage"
-              pageSize={pageSize}
-              query={{ attentionPage: params.attentionPage }}
-              totalItems={tasks.length}
-              totalPages={pageCount(tasks.length)}
-            />
+                </article>
+              ))}
+            </PaginationControls>
           </div>
         ) : (
           <EmptyState title="No maintenance yet" description="Add filters, HVAC checks, smoke detector batteries, or seasonal tasks." />
@@ -174,20 +148,6 @@ export default async function MaintenancePage({ searchParams }: MaintenancePageP
       </section>
     </div>
   );
-}
-
-function pageCount(totalItems: number) {
-  return Math.max(1, Math.ceil(totalItems / pageSize));
-}
-
-function boundedPage(value: string | undefined, totalItems: number) {
-  const parsed = Number.parseInt(value || "1", 10);
-  const page = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-  return Math.min(page, pageCount(totalItems));
-}
-
-function paginate<T>(items: T[], page: number) {
-  return items.slice((page - 1) * pageSize, page * pageSize);
 }
 
 type MaintenanceFormProps = {

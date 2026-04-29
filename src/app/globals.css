@@ -675,6 +675,11 @@ textarea:focus {
   font-weight: 700;
 }
 
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .pagination > div {
   display: flex;
   align-items: center;
@@ -684,11 +689,6 @@ textarea:focus {
 .pagination strong {
   color: var(--text);
   white-space: nowrap;
-}
-
-.pagination-disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
 }
 
 .muted-line {

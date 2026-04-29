@@ -2,6 +2,7 @@ import { ExpenseCategory } from "@/generated/prisma/enums";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
+import { PaginationControls } from "@/components/PaginationControls";
 import { StatusPill } from "@/components/StatusPill";
 import { createExpenseAction, deleteExpenseAction, toggleExpensePaidAction, updateExpenseAction } from "@/app/(app)/budget/actions";
 import { formatDate, toDateInputValue, todayDate } from "@/lib/dates";
@@ -19,6 +20,8 @@ const categoryLabels: Record<ExpenseCategory, string> = {
   SUBSCRIPTIONS: "Subscriptions/services",
   CUSTOM: "Custom"
 };
+
+const pageSize = 5;
 
 export default async function BudgetPage() {
   const { household } = await requireAdminHousehold();
@@ -95,35 +98,37 @@ export default async function BudgetPage() {
         </div>
         {expenses.length ? (
           <div className="record-list">
-            {expenses.map((expense) => (
-              <article className="record-card" key={expense.id}>
-                <div className="record-main">
-                  <div>
-                    <strong>{expense.name}</strong>
-                    <span>{categoryLabels[expense.category]} - Due {formatDate(expense.dueDate)}</span>
+            <PaginationControls itemLabel="expenses" pageSize={pageSize}>
+              {expenses.map((expense) => (
+                <article className="record-card" key={expense.id}>
+                  <div className="record-main">
+                    <div>
+                      <strong>{expense.name}</strong>
+                      <span>{categoryLabels[expense.category]} - Due {formatDate(expense.dueDate)}</span>
+                    </div>
+                    <div className="record-meta">
+                      <strong>{formatMoney(expense.amountCents)}</strong>
+                      <StatusPill tone={expense.isPaid ? "good" : "warn"}>{expense.isPaid ? "Paid" : "Unpaid"}</StatusPill>
+                    </div>
                   </div>
-                  <div className="record-meta">
-                    <strong>{formatMoney(expense.amountCents)}</strong>
-                    <StatusPill tone={expense.isPaid ? "good" : "warn"}>{expense.isPaid ? "Paid" : "Unpaid"}</StatusPill>
-                  </div>
-                </div>
 
-                <div className="record-actions">
-                  <form action={toggleExpensePaidAction}>
-                    <input type="hidden" name="id" value={expense.id} />
-                    <button className="secondary-button">{expense.isPaid ? "Mark unpaid" : "Mark paid"}</button>
-                  </form>
-                  <details>
-                    <summary className="secondary-button">Edit</summary>
-                    <ExpenseForm action={updateExpenseAction} expense={expense} />
-                  </details>
-                  <form action={deleteExpenseAction}>
-                    <input type="hidden" name="id" value={expense.id} />
-                    <ConfirmButton className="danger-button" message={`Delete ${expense.name}?`}>Delete</ConfirmButton>
-                  </form>
-                </div>
-              </article>
-            ))}
+                  <div className="record-actions">
+                    <form action={toggleExpensePaidAction}>
+                      <input type="hidden" name="id" value={expense.id} />
+                      <button className="secondary-button">{expense.isPaid ? "Mark unpaid" : "Mark paid"}</button>
+                    </form>
+                    <details>
+                      <summary className="secondary-button">Edit</summary>
+                      <ExpenseForm action={updateExpenseAction} expense={expense} />
+                    </details>
+                    <form action={deleteExpenseAction}>
+                      <input type="hidden" name="id" value={expense.id} />
+                      <ConfirmButton className="danger-button" message={`Delete ${expense.name}?`}>Delete</ConfirmButton>
+                    </form>
+                  </div>
+                </article>
+              ))}
+            </PaginationControls>
           </div>
         ) : (
           <EmptyState title="No expenses yet" description="Add the first mortgage, utility, or service cost to begin." />
