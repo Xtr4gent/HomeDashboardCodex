@@ -664,6 +664,33 @@ textarea:focus {
   margin-bottom: 12px;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 4px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination strong {
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.pagination-disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .muted-line {
   margin-bottom: 0;
 }
@@ -829,9 +856,15 @@ textarea:focus {
 
   .page-header,
   .record-main,
-  .compact-row {
+  .compact-row,
+  .pagination {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .pagination > div {
+    justify-content: space-between;
+    width: 100%;
   }
 
   .grid-form,

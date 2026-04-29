@@ -3,6 +3,7 @@ import { UpgradeStatus } from "@/generated/prisma/enums";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { EmptyState } from "@/components/EmptyState";
 import { MetricCard } from "@/components/MetricCard";
+import { PaginationControls } from "@/components/PaginationControls";
 import { StatusPill } from "@/components/StatusPill";
 import { createUpgradeAction, deleteUpgradeAction, updateUpgradeAction } from "@/app/(app)/upgrades/actions";
 import { formatDate, toDateInputValue } from "@/lib/dates";
@@ -16,8 +17,12 @@ const statusLabels: Record<UpgradeStatus, string> = {
   COMPLETED: "Completed"
 };
 
+const pageSize = 5;
+
 type UpgradePageProps = {
   searchParams: Promise<{
+    activePage?: string;
+    completedPage?: string;
     status?: string;
     room?: string;
   }>;
@@ -40,6 +45,8 @@ export default async function UpgradesPage({ searchParams }: UpgradePageProps) {
   const projects = allProjects.filter((project) => (!status || project.status === status) && (!room || project.room === room));
   const active = projects.filter((project) => project.status !== UpgradeStatus.COMPLETED);
   const completed = projects.filter((project) => project.status === UpgradeStatus.COMPLETED);
+  const activePage = boundedPage(params.activePage, active.length);
+  const completedPage = boundedPage(params.completedPage, completed.length);
   const estimatedTotal = allProjects.reduce((sum, project) => sum + (project.estimatedCents || 0), 0);
   const actualTotal = allProjects.reduce((sum, project) => sum + (project.actualCents || 0), 0);
   const variance = actualTotal - estimatedTotal;
@@ -89,8 +96,21 @@ export default async function UpgradesPage({ searchParams }: UpgradePageProps) {
         </div>
       </section>
 
-      <ProjectSection title="Active projects" projects={active} />
-      <ProjectSection title="Completed projects" projects={completed} completed />
+      <ProjectSection
+        currentPage={activePage}
+        pageParam="activePage"
+        projects={active}
+        query={{ completedPage: params.completedPage, room, status }}
+        title="Active projects"
+      />
+      <ProjectSection
+        completed
+        currentPage={completedPage}
+        pageParam="completedPage"
+        projects={completed}
+        query={{ activePage: params.activePage, room, status }}
+        title="Completed projects"
+      />
     </div>
   );
 }
@@ -98,6 +118,9 @@ export default async function UpgradesPage({ searchParams }: UpgradePageProps) {
 type ProjectSectionProps = {
   title: string;
   completed?: boolean;
+  currentPage: number;
+  pageParam: string;
+  query: Record<string, string | undefined>;
   projects: Array<{
     id: string;
     name: string;
@@ -113,7 +136,9 @@ type ProjectSectionProps = {
   }>;
 };
 
-function ProjectSection({ title, projects, completed }: ProjectSectionProps) {
+function ProjectSection({ title, projects, completed, currentPage, pageParam, query }: ProjectSectionProps) {
+  const pagedProjects = paginate(projects, currentPage);
+
   return (
     <section className="panel">
       <div className="panel-heading">
@@ -121,7 +146,7 @@ function ProjectSection({ title, projects, completed }: ProjectSectionProps) {
       </div>
       {projects.length ? (
         <div className="record-list">
-          {projects.map((project) => (
+          {pagedProjects.map((project) => (
             <article className="record-card" key={project.id}>
               <div className="record-main">
                 <div>
@@ -150,6 +175,15 @@ function ProjectSection({ title, projects, completed }: ProjectSectionProps) {
               </div>
             </article>
           ))}
+          <PaginationControls
+            basePath="/upgrades"
+            currentPage={currentPage}
+            pageParam={pageParam}
+            pageSize={pageSize}
+            query={query}
+            totalItems={projects.length}
+            totalPages={pageCount(projects.length)}
+          />
         </div>
       ) : (
         <EmptyState
@@ -159,6 +193,20 @@ function ProjectSection({ title, projects, completed }: ProjectSectionProps) {
       )}
     </section>
   );
+}
+
+function pageCount(totalItems: number) {
+  return Math.max(1, Math.ceil(totalItems / pageSize));
+}
+
+function boundedPage(value: string | undefined, totalItems: number) {
+  const parsed = Number.parseInt(value || "1", 10);
+  const page = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+  return Math.min(page, pageCount(totalItems));
+}
+
+function paginate<T>(items: T[], page: number) {
+  return items.slice((page - 1) * pageSize, page * pageSize);
 }
 
 type UpgradeFormProps = {
